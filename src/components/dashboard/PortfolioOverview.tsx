@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Briefcase, TrendingUp, TrendingDown, Percent, ChevronDown } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Percent, ChevronDown, ArrowUpDown } from 'lucide-react';
 import { useGlobalViewSettings } from '../../hooks/useGlobalViewSettings';
 
 interface PortfolioData {
@@ -18,6 +18,13 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
   const [showQuarterSelector, setShowQuarterSelector] = useState(false);
   const { settings, updateSettings } = useGlobalViewSettings();
   const selectedQuarter = settings.portfolioQuarter;
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  }>({
+    key: 'portfolio_company_name',
+    direction: 'asc'
+  });
 
   // Format percentage by multiplying by 100 since the value is stored as a decimal
   const formatPercentage = (value: number) => {
@@ -51,6 +58,69 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
     });
     setShowQuarterSelector(false);
   };
+
+  const handleSort = (key: string) => {
+    setSortConfig({
+      key,
+      direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+    });
+  };
+
+  const sortedData = [...portfolioData].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortConfig.key) {
+      case 'portfolio_company_name':
+        aValue = a.portfolio_company_name;
+        bValue = b.portfolio_company_name;
+        break;
+      case 'investment':
+        aValue = getQuarterValue(a, 'total_investment');
+        bValue = getQuarterValue(b, 'total_investment');
+        break;
+      case 'value':
+        aValue = getQuarterValue(a, 'total_value');
+        bValue = getQuarterValue(b, 'total_value');
+        break;
+      case 'moic':
+        aValue = calculateMoIC(
+          getQuarterValue(a, 'total_investment'),
+          getQuarterValue(a, 'total_value')
+        );
+        bValue = calculateMoIC(
+          getQuarterValue(b, 'total_investment'),
+          getQuarterValue(b, 'total_value')
+        );
+        break;
+      case 'ownership':
+        aValue = a.latest_ownership;
+        bValue = b.latest_ownership;
+        break;
+      case 'valuation':
+        aValue = a.latest_valuation;
+        bValue = b.latest_valuation;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const SortableHeader: React.FC<{ label: string; sortKey: string }> = ({ label, sortKey }) => (
+    <th 
+      className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+      onClick={() => handleSort(sortKey)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{label}</span>
+        <ArrowUpDown className="h-4 w-4" />
+      </div>
+    </th>
+  );
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -96,28 +166,16 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Company Name
-                </th>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Investment Cost
-                </th>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Investment Value
-                </th>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  MoIC
-                </th>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Latest Ownership
-                </th>
-                <th className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Latest Valuation
-                </th>
+                <SortableHeader label="Company Name" sortKey="portfolio_company_name" />
+                <SortableHeader label="Investment Cost" sortKey="investment" />
+                <SortableHeader label="Investment Value" sortKey="value" />
+                <SortableHeader label="MoIC" sortKey="moic" />
+                <SortableHeader label="Latest Ownership" sortKey="ownership" />
+                <SortableHeader label="Latest Valuation" sortKey="valuation" />
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {portfolioData.map((company) => {
+              {sortedData.map((company) => {
                 const investment = getQuarterValue(company, 'total_investment');
                 const value = getQuarterValue(company, 'total_value');
                 const moic = calculateMoIC(investment, value);
