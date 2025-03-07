@@ -17,7 +17,7 @@ CREATE OR REPLACE FUNCTION public.handle_user_approval()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Check if status changed to approved
-  IF (NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status != 'approved')) THEN
+  IF (NEW.status = 'approved') THEN
     -- Send welcome email to the user using supabase_functions
     PERFORM supabase_functions.http_request(
       'https://xoxyfcznfrqcaanymhpg.supabase.co/functions/v1/send-email',
