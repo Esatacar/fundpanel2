@@ -160,7 +160,6 @@ export default function FundSummary({
                   <div className="p-2 h-[300px] overflow-y-auto">
                     {years.map(year => (
                       <div key={year}>
-                        {/* Show all quarters for years before 2025, only Q1 for 2025 */}
                         {(year === 2025 ? [1] : [4, 3, 2, 1]).map(quarter => (
                           <button
                             key={`${year}-${quarter}`}
