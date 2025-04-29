@@ -260,12 +260,13 @@ export default function LPDashboard() {
     
     const data: ChartData[] = [];
     
-    // Iterate through years in ascending order (oldest to newest)
-    [...years].reverse().forEach(year => {
-      // Use appropriate quarters based on the year
-      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+    // Start from oldest year (2021) to newest (2025)
+    const sortedYears = [...years].reverse();
+    
+    sortedYears.forEach(year => {
+      // For each year, go from Q1 to Q4 (or just Q1 for 2025)
+      const availableQuarters = year === 2025 ? [1] : [1, 2, 3, 4];
       
-      // Iterate through quarters in ascending order (Q1 to Q4)
       availableQuarters.forEach(quarter => {
         const paidCapital = companyData[`paid_capital_q${quarter}_${year}`] || 0;
         const nav = companyData[`nav_q${quarter}_${year}`] || 0;
