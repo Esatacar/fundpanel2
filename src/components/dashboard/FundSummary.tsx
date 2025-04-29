@@ -26,15 +26,18 @@ interface FundSummaryProps {
 
 function findLatestQuarterWithData(fundLevelData: any): { year: number; quarter: number } {
   if (!fundLevelData) {
-    return { year: 2024, quarter: 1 };
+    return { year: 2025, quarter: 1 };
   }
 
   // Start from latest possible quarter and work backwards
-  const years = [2024, 2023, 2022, 2021];
+  const years = [2025, 2024, 2023, 2022, 2021];
   const quarters = [4, 3, 2, 1];
 
   for (const year of years) {
-    for (const quarter of quarters) {
+    // Only check Q1 for 2025
+    const availableQuarters = year === 2025 ? [1] : quarters;
+    
+    for (const quarter of availableQuarters) {
       // Check if any metric has data for this quarter
       const hasData = metrics.some(({ prefix }) => {
         const value = fundLevelData[`${prefix}_q${quarter}_${year}`];
@@ -90,8 +93,10 @@ export default function FundSummary({
     const sortedYears = [...years].reverse();
     
     sortedYears.forEach(year => {
-      // Use quarters in ascending order (1 to 4)
-      [1, 2, 3, 4].forEach(quarter => {
+      // Use all quarters for years before 2025, only Q1 for 2025
+      const availableQuarters = year === 2025 ? [1] : [1, 2, 3, 4];
+      
+      availableQuarters.forEach(quarter => {
         const tvpi = fundLevelData[`tvpi_q${quarter}_${year}`] || 0;
         const irr = fundLevelData[`irr_q${quarter}_${year}`] * 100 || 0; // Convert decimal to percentage
         
@@ -155,7 +160,8 @@ export default function FundSummary({
                   <div className="p-2 h-[300px] overflow-y-auto">
                     {years.map(year => (
                       <div key={year}>
-                        {quarters.map(quarter => (
+                        {/* Show all quarters for years before 2025, only Q1 for 2025 */}
+                        {(year === 2025 ? [1] : [4, 3, 2, 1]).map(quarter => (
                           <button
                             key={`${year}-${quarter}`}
                             onClick={() => {
