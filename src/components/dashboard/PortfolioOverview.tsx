@@ -49,8 +49,8 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
     }).format(value);
   };
 
-  const years = [2024, 2023, 2022, 2021];
-  const quarters = [4, 3, 2, 1];
+  const years = [2025, 2024, 2023, 2022, 2021];
+  const regularQuarters = [4, 3, 2, 1];
 
   const handleQuarterSelection = async (year: number, quarter: number) => {
     await updateSettings({
@@ -112,7 +112,7 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
 
   const SortableHeader: React.FC<{ label: string; sortKey: string }> = ({ label, sortKey }) => (
     <th 
-      className="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+      className="px-4 py-2 bg-gray-50 cursor-pointer hover:bg-gray-100"
       onClick={() => handleSort(sortKey)}
     >
       <div className="flex items-center space-x-1">
@@ -144,7 +144,7 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
                 <div className="p-2 max-h-[300px] overflow-y-auto">
                   {years.map(year => (
                     <div key={year}>
-                      {quarters.map(quarter => (
+                      {(year === 2025 ? [1] : regularQuarters).map(quarter => (
                         <button
                           key={`${year}-${quarter}`}
                           onClick={() => handleQuarterSelection(year, quarter)}
