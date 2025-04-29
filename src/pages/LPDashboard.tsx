@@ -54,8 +54,10 @@ interface QuarterOption {
   selected: boolean;
 }
 
+// Define available years and quarters
 const years = [2025, 2024, 2023, 2022, 2021];
-const quarters = [4, 3, 2, 1];
+const quarters = [1]; // Only Q1 for 2025
+const regularQuarters = [4, 3, 2, 1]; // All quarters for other years
 
 export default function LPDashboard() {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
@@ -122,7 +124,10 @@ export default function LPDashboard() {
     let latestQuartersCount = 0;
     
     for (const year of years) {
-      for (const quarter of quarters) {
+      // Use different quarters array based on the year
+      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+      
+      for (const quarter of availableQuarters) {
         const isLatestQuarter = latestQuartersCount < 4;
         options.push({
           year,
@@ -160,7 +165,8 @@ export default function LPDashboard() {
     if (!fundLevelData) return null;
 
     for (const year of years) {
-      for (const quarter of quarters) {
+      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+      for (const quarter of availableQuarters) {
         const hasData = Object.keys(fundLevelData).some(key => {
           if (key.endsWith(`_q${quarter}_${year}`)) {
             const value = fundLevelData[key];
@@ -256,8 +262,11 @@ export default function LPDashboard() {
     
     // Iterate through years in ascending order (oldest to newest)
     [...years].reverse().forEach(year => {
+      // Use appropriate quarters based on the year
+      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+      
       // Iterate through quarters in ascending order (Q1 to Q4)
-      [1, 2, 3, 4].forEach(quarter => {
+      availableQuarters.forEach(quarter => {
         const paidCapital = companyData[`paid_capital_q${quarter}_${year}`] || 0;
         const nav = companyData[`nav_q${quarter}_${year}`] || 0;
         
