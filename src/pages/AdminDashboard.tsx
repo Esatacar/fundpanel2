@@ -53,14 +53,17 @@ async function retryOperation<T>(
 
 function findLatestQuarterWithData(fundLevelData: FundLevelData | null): { year: number; quarter: number } {
   if (!fundLevelData) {
-    return { year: 2021, quarter: 1 };
+    return { year: 2025, quarter: 1 };
   }
 
-  const years = [2024, 2023, 2022, 2021];
+  const years = [2025, 2024, 2023, 2022, 2021];
   const quarters = [4, 3, 2, 1];
 
   for (const year of years) {
-    for (const quarter of quarters) {
+    // Only check Q1 for 2025
+    const availableQuarters = year === 2025 ? [1] : quarters;
+    
+    for (const quarter of availableQuarters) {
       const hasData = Object.keys(fundLevelData).some(key => {
         if (key.endsWith(`_q${quarter}_${year}`)) {
           const value = fundLevelData[key];
@@ -452,7 +455,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const years = [2024, 2023, 2022, 2021];
+  const years = [2025, 2024, 2023, 2022, 2021];
   const quarters = [4, 3, 2, 1];
 
   if (loading) {
