@@ -254,7 +254,9 @@ export default function LPDashboard() {
     
     const data: ChartData[] = [];
     
-    [2025, 2024, 2023, 2022, 2021].forEach(year => {
+    // Iterate through years in ascending order (oldest to newest)
+    [...years].reverse().forEach(year => {
+      // Iterate through quarters in ascending order (Q1 to Q4)
       [1, 2, 3, 4].forEach(quarter => {
         const paidCapital = companyData[`paid_capital_q${quarter}_${year}`] || 0;
         const nav = companyData[`nav_q${quarter}_${year}`] || 0;
