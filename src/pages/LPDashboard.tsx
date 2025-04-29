@@ -54,13 +54,13 @@ interface QuarterOption {
   selected: boolean;
 }
 
-const years = [2024, 2023, 2022, 2021];
+const years = [2025, 2024, 2023, 2022, 2021];
 const quarters = [4, 3, 2, 1];
 
 export default function LPDashboard() {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [fundLevelData, setFundLevelData] = useState<FundLevelData | null>(null);
-  const [selectedPeriod, setSelectedPeriod] = useState<Period>({ year: 2024, quarter: 1 });
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>({ year: 2025, quarter: 1 });
   const [showPeriodSelector, setShowPeriodSelector] = useState(false);
   const [quarterOptions, setQuarterOptions] = useState<QuarterOption[]>([]);
   const [showQuarterSelector, setShowQuarterSelector] = useState(false);
@@ -254,7 +254,7 @@ export default function LPDashboard() {
     
     const data: ChartData[] = [];
     
-    [2021, 2022, 2023, 2024].forEach(year => {
+    [2025, 2024, 2023, 2022, 2021].forEach(year => {
       [1, 2, 3, 4].forEach(quarter => {
         const paidCapital = companyData[`paid_capital_q${quarter}_${year}`] || 0;
         const nav = companyData[`nav_q${quarter}_${year}`] || 0;
