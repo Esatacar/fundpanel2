@@ -319,7 +319,7 @@ export default function LPDashboard() {
       return `${(value * 100).toFixed(1)}%`;
     }
     if (['tvpi', 'moic'].includes(prefix)) {
-      return `${Number(value).toFixed(2)}x`;
+      return `${Number(value).toFixed(1)}x`;
     }
     if (prefix === 'lp_count') {
       return value.toString();
