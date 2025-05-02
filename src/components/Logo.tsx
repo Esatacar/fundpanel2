@@ -23,6 +23,7 @@ export default function Logo({ size = 'default' }: LogoProps) {
       alt="e2vc Logo"
       className={`${imageSize} w-auto object-contain`}
       onError={() => setImageError(true)}
+      crossOrigin="anonymous"
     />
   );
 }
