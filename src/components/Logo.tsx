@@ -19,7 +19,7 @@ export default function Logo({ size = 'default' }: LogoProps) {
 
   return (
     <img 
-      src="https://i.postimg.cc/JnsMQwzh/e2vc-logo.png"
+      src="https://i.postimg.cc/Y0knr2k4/e2vc-logo.webp"
       alt="e2vc Logo"
       className={`${imageSize} w-auto object-contain`}
       onError={() => setImageError(true)}
