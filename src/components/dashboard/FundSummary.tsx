@@ -20,7 +20,7 @@ interface FundSummaryProps {
   setSelectedPeriod?: (period: { year: number; quarter: number }) => void;
   periodSelectorRef?: React.RefObject<HTMLDivElement>;
   years: number[];
-  quarters: number[];
+  quarters: number[]; // Not used anymore, kept for compatibility
   getValue: (prefix: string) => string;
 }
 
@@ -31,13 +31,12 @@ function findLatestQuarterWithData(fundLevelData: any): { year: number; quarter:
 
   // Start from latest possible quarter and work backwards
   const years = [2025, 2024, 2023, 2022, 2021];
-  const quarters = [4, 3, 2, 1];
 
   for (const year of years) {
-    // Only check Q1 for 2025
-    const availableQuarters = year === 2025 ? [1] : quarters;
+    // Check all possible quarters for each year
+    const quarters = [4, 3, 2, 1];
     
-    for (const quarter of availableQuarters) {
+    for (const quarter of quarters) {
       // Check if any metric has data for this quarter
       const hasData = metrics.some(({ prefix }) => {
         const value = fundLevelData[`${prefix}_q${quarter}_${year}`];
@@ -62,11 +61,36 @@ export default function FundSummary({
   setSelectedPeriod = () => {},
   periodSelectorRef,
   years,
-  quarters,
+  quarters, // Not used anymore
   getValue
 }: FundSummaryProps) {
   // If no selectedPeriod is provided, find the latest quarter with data
   const effectivePeriod = selectedPeriod || findLatestQuarterWithData(fundLevelData);
+
+  // Function to get available quarters for a given year based on actual data
+  const getAvailableQuarters = (year: number) => {
+    if (!fundLevelData) return [1];
+    
+    const availableQuarters: number[] = [];
+    const quartersToCheck = [4, 3, 2, 1];
+    
+    for (const quarter of quartersToCheck) {
+      // Check if any metric has data for this quarter
+      const hasData = Object.keys(fundLevelData).some(key => {
+        if (key.endsWith(`_q${quarter}_${year}`)) {
+          const value = fundLevelData[key];
+          return value !== null && value !== undefined && value !== 0;
+        }
+        return false;
+      });
+      
+      if (hasData) {
+        availableQuarters.push(quarter);
+      }
+    }
+    
+    return availableQuarters.length > 0 ? availableQuarters : [1];
+  };
 
   const getColorClass = (color: string) => {
     const colorMap: Record<string, { bg: string, text: string, border: string }> = {
@@ -93,10 +117,11 @@ export default function FundSummary({
     const sortedYears = [...years].reverse();
     
     sortedYears.forEach(year => {
-      // Use all quarters for years before 2025, only Q1 for 2025
-      const availableQuarters = year === 2025 ? [1] : [1, 2, 3, 4];
+      // Get available quarters based on actual data
+      const availableQuarters = getAvailableQuarters(year);
       
-      availableQuarters.forEach(quarter => {
+      // Sort quarters in ascending order for chronological display
+      availableQuarters.sort((a, b) => a - b).forEach(quarter => {
         const tvpi = fundLevelData[`tvpi_q${quarter}_${year}`] || 0;
         const irr = fundLevelData[`irr_q${quarter}_${year}`] * 100 || 0; // Convert decimal to percentage
         
@@ -160,7 +185,7 @@ export default function FundSummary({
                   <div className="p-2 h-[300px] overflow-y-auto">
                     {years.map(year => (
                       <div key={year}>
-                        {(year === 2025 ? [1] : [4, 3, 2, 1]).map(quarter => (
+                        {getAvailableQuarters(year).map(quarter => (
                           <button
                             key={`${year}-${quarter}`}
                             onClick={() => {
