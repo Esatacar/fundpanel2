@@ -3,6 +3,31 @@ import { Table, ChevronDown, Check } from 'lucide-react';
 import { useGlobalViewSettings } from '../../hooks/useGlobalViewSettings';
 import { accountMetrics } from '../../constants/accountMetrics';
 
+// Function to get available quarters for a given year based on actual data
+const getAvailableQuarters = (year: number, data: any) => {
+  if (!data) return year === 2025 ? [1, 2] : [4, 3, 2, 1];
+  
+  const availableQuarters: number[] = [];
+  const quartersToCheck = [4, 3, 2, 1];
+  
+  for (const quarter of quartersToCheck) {
+    // Check if any metric has data for this quarter
+    const hasData = Object.keys(data).some(key => {
+      if (key.endsWith(`_q${quarter}_${year}`)) {
+        const value = data[key];
+        return value !== null && value !== undefined && value !== 0;
+      }
+      return false;
+    });
+    
+    if (hasData) {
+      availableQuarters.push(quarter);
+    }
+  }
+  
+  return availableQuarters.length > 0 ? availableQuarters.sort((a, b) => b - a) : [1];
+};
+
 interface AccountDetailsProps {
   quarterOptions: Array<{
     year: number;
@@ -25,7 +50,6 @@ interface AccountDetailsProps {
 }
 
 export default function AccountDetails({
-  quarterOptions,
   showQuarterSelector,
   setShowQuarterSelector,
   quarterSelectorRef,
@@ -34,18 +58,44 @@ export default function AccountDetails({
 }: AccountDetailsProps) {
   const { settings, updateSettings } = useGlobalViewSettings();
   
-  const toggleQuarterSelection = async (value: string) => {
-    const updatedQuarters = quarterOptions.map(option => ({
-      ...option,
-      selected: option.value === value ? !option.selected : option.selected
-    }));
+  // Generate quarter options dynamically based on actual data
+  const years = [2025, 2024, 2023, 2022, 2021];
+  const quarterOptions = React.useMemo(() => {
+    const options: Array<{
+      year: number;
+      quarter: number;
+      label: string;
+      value: string;
+      selected: boolean;
+    }> = [];
     
-    const selectedValues = updatedQuarters
-      .filter(option => option.selected)
-      .map(option => option.value);
+    for (const year of years) {
+      const availableQuarters = getAvailableQuarters(year, companyData);
+      
+      for (const quarter of availableQuarters) {
+        options.push({
+          year,
+          quarter,
+          label: `Q${quarter} ${year}`,
+          value: `${year}-${quarter}`,
+          selected: settings.accountQuarters.includes(`${year}-${quarter}`)
+        });
+      }
+    }
+    
+    return options;
+  }, [companyData, settings.accountQuarters]);
+  
+  const toggleQuarterSelection = async (value: string) => {
+    const currentSelected = settings.accountQuarters;
+    const isCurrentlySelected = currentSelected.includes(value);
+    
+    const updatedSelected = isCurrentlySelected
+      ? currentSelected.filter(q => q !== value)
+      : [...currentSelected, value];
     
     await updateSettings({
-      accountQuarters: selectedValues
+      accountQuarters: updatedSelected
     });
   };
 
