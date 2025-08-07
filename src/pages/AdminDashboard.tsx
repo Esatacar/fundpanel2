@@ -60,8 +60,8 @@ function findLatestQuarterWithData(fundLevelData: FundLevelData | null): { year:
   const quarters = [4, 3, 2, 1];
 
   for (const year of years) {
-    // Only check Q1 for 2025
-    const availableQuarters = year === 2025 ? [1] : quarters;
+    // Check all quarters for each year
+    const availableQuarters = quarters;
     
     for (const quarter of availableQuarters) {
       const hasData = Object.keys(fundLevelData).some(key => {
