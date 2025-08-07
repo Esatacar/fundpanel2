@@ -26,6 +26,35 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
     direction: 'asc'
   });
 
+  // Function to get available quarters for a given year based on actual data
+  const getAvailableQuarters = (year: number) => {
+    if (!portfolioData || portfolioData.length === 0) return [1];
+    
+    const availableQuarters: number[] = [];
+    const quartersToCheck = [4, 3, 2, 1];
+    
+    for (const quarter of quartersToCheck) {
+      // Check if any portfolio company has data for this quarter
+      const hasData = portfolioData.some(company => {
+        const fields = [
+          `total_investment_q${quarter}_${year}`,
+          `total_value_q${quarter}_${year}`
+        ];
+        
+        return fields.some(field => {
+          const value = company[field];
+          return value !== null && value !== undefined && value > 0;
+        });
+      });
+      
+      if (hasData) {
+        availableQuarters.push(quarter);
+      }
+    }
+    
+    return availableQuarters.length > 0 ? availableQuarters : [1];
+  };
+
   // Format percentage by multiplying by 100 since the value is stored as a decimal
   const formatPercentage = (value: number) => {
     if (typeof value !== 'number') return '0.0%';
@@ -50,7 +79,6 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
   };
 
   const years = [2025, 2024, 2023, 2022, 2021];
-  const regularQuarters = [4, 3, 2, 1];
 
   const handleQuarterSelection = async (year: number, quarter: number) => {
     await updateSettings({
@@ -144,7 +172,7 @@ export default function PortfolioOverview({ portfolioData, formatCurrency }: Por
                 <div className="p-2 max-h-[300px] overflow-y-auto">
                   {years.map(year => (
                     <div key={year}>
-                      {(year === 2025 ? [1] : regularQuarters).map(quarter => (
+                      {getAvailableQuarters(year).map(quarter => (
                         <button
                           key={`${year}-${quarter}`}
                           onClick={() => handleQuarterSelection(year, quarter)}
