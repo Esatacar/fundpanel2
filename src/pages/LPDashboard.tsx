@@ -56,8 +56,32 @@ interface QuarterOption {
 
 // Define available years and quarters
 const years = [2025, 2024, 2023, 2022, 2021];
-const quarters = [1]; // Only Q1 for 2025
 const regularQuarters = [4, 3, 2, 1]; // All quarters for other years
+
+// Function to get available quarters for a given year based on actual data
+const getAvailableQuarters = (year: number, data: any) => {
+  if (!data) return year === 2025 ? [1] : regularQuarters;
+  
+  const availableQuarters: number[] = [];
+  const quartersToCheck = year === 2025 ? [1, 2, 3, 4] : regularQuarters;
+  
+  for (const quarter of quartersToCheck) {
+    // Check if any metric has data for this quarter
+    const hasData = Object.keys(data).some(key => {
+      if (key.endsWith(`_q${quarter}_${year}`)) {
+        const value = data[key];
+        return value !== null && value !== undefined && value !== 0;
+      }
+      return false;
+    });
+    
+    if (hasData) {
+      availableQuarters.push(quarter);
+    }
+  }
+  
+  return availableQuarters.length > 0 ? availableQuarters.sort((a, b) => b - a) : [1];
+};
 
 export default function LPDashboard() {
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
@@ -124,8 +148,8 @@ export default function LPDashboard() {
     let latestQuartersCount = 0;
     
     for (const year of years) {
-      // Use different quarters array based on the year
-      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+      // Get available quarters based on actual data
+      const availableQuarters = getAvailableQuarters(year, companyData);
       
       for (const quarter of availableQuarters) {
         const isLatestQuarter = latestQuartersCount < 4;
@@ -165,7 +189,7 @@ export default function LPDashboard() {
     if (!fundLevelData) return null;
 
     for (const year of years) {
-      const availableQuarters = year === 2025 ? quarters : regularQuarters;
+      const availableQuarters = getAvailableQuarters(year, fundLevelData);
       for (const quarter of availableQuarters) {
         const hasData = Object.keys(fundLevelData).some(key => {
           if (key.endsWith(`_q${quarter}_${year}`)) {
@@ -264,10 +288,11 @@ export default function LPDashboard() {
     const sortedYears = [...years].reverse();
     
     sortedYears.forEach(year => {
-      // For each year, go from Q1 to Q4 (or just Q1 for 2025)
-      const availableQuarters = year === 2025 ? [1] : [1, 2, 3, 4];
+      // For each year, get available quarters based on data
+      const availableQuarters = getAvailableQuarters(year, companyData);
       
-      availableQuarters.forEach(quarter => {
+      // Sort quarters in ascending order for chronological display
+      availableQuarters.sort((a, b) => a - b).forEach(quarter => {
         const paidCapital = companyData[`paid_capital_q${quarter}_${year}`] || 0;
         const nav = companyData[`nav_q${quarter}_${year}`] || 0;
         
@@ -319,7 +344,7 @@ export default function LPDashboard() {
       return `${(value * 100).toFixed(1)}%`;
     }
     if (['tvpi', 'moic'].includes(prefix)) {
-      return `${Number(value).toFixed(1)}x`;
+      return `${Number(value).toFixed(2)}x`;
     }
     if (prefix === 'lp_count') {
       return value.toString();
@@ -368,7 +393,7 @@ export default function LPDashboard() {
             setSelectedPeriod={setSelectedPeriod}
             periodSelectorRef={periodSelectorRef}
             years={years}
-            quarters={quarters}
+            quarters={[]} // Not used anymore, quarters are determined dynamically
             getValue={getValue}
           />
 
@@ -392,11 +417,9 @@ export default function LPDashboard() {
               </div>
 
               <AccountDetails
-                quarterOptions={quarterOptions}
                 selectedQuarters={selectedQuarters}
                 showQuarterSelector={showQuarterSelector}
                 setShowQuarterSelector={setShowQuarterSelector}
-                toggleQuarterSelection={toggleQuarterSelection}
                 quarterSelectorRef={quarterSelectorRef}
                 companyData={companyData}
                 formatCurrency={formatCurrency}
